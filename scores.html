@@ -870,29 +870,31 @@ function render() {
     .filter(r => r.t.applicable > 0)
     .sort((a, b) => b.t.score - a.t.score || b.t.coverage - a.t.coverage || a.row.name.localeCompare(b.row.name));
 
-  // Combine platforms with identical scores
-  const groupedByName = {};
-  ranked.forEach(item => {
-    const key = item.row.name;
-    if (!groupedByName[key]) groupedByName[key] = [];
-    groupedByName[key].push(item);
-  });
-
+  // Combine platforms with identical scores, preserving sort order
   const combined = [];
-  Object.values(groupedByName).forEach(group => {
-    if (group.length === 1) {
-      combined.push(group[0]);
+  const processed = new Set();
+
+  ranked.forEach(item => {
+    const gameKey = item.row.name;
+    if (processed.has(gameKey)) return;
+
+    // Find all items for this game
+    const gameItems = ranked.filter(r => r.row.name === gameKey);
+    processed.add(gameKey);
+
+    if (gameItems.length === 1) {
+      combined.push(gameItems[0]);
     } else {
-      // Group by matching score/coverage/breakdown
-      const scoreGroups = {};
-      group.forEach(item => {
+      // Group by matching score/coverage/breakdown, preserving first occurrence
+      const scoreMap = new Map();
+      gameItems.forEach(item => {
         const key = `${item.t.score}|${item.t.coverage}|${item.t.Y}|${item.t.P}|${item.t.N}|${item.t.U}`;
-        if (!scoreGroups[key]) scoreGroups[key] = [];
-        scoreGroups[key].push(item);
+        if (!scoreMap.has(key)) scoreMap.set(key, []);
+        scoreMap.get(key).push(item);
       });
 
-      // Combine platforms within each score group
-      Object.values(scoreGroups).forEach(subgroup => {
+      // Add combined rows in order of first occurrence
+      scoreMap.forEach(subgroup => {
         if (subgroup.length === 1) {
           combined.push(subgroup[0]);
         } else {
