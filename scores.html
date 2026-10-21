@@ -89,6 +89,15 @@
   .score { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
   .cov { font-size: .9rem; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
   .flag { font-size: .85rem; color: var(--miss); font-weight: 600; }
+  .gaar { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: .85rem; margin-left: .5rem; }
+  .gaar-a { background: #dbeafe; color: #1e40af; }
+  .gaar-aa { background: #ede9fe; color: #5b21b6; }
+  .gaar-aaa { background: #fef3c7; color: #92400e; }
+  @media (prefers-color-scheme: dark) {
+    .gaar-a { background: #1e3a8a; color: #93c5fd; }
+    .gaar-aa { background: #4c1d95; color: #d8b4fe; }
+    .gaar-aaa { background: #78350f; color: #fcd34d; }
+  }
 
   details.game { border: 1px solid var(--line); border-left: 4px solid var(--blue); margin: .75rem 0; padding: .5rem 1rem; }
   details.game summary { cursor: pointer; font-weight: 700; }
@@ -132,8 +141,15 @@
       <li><strong>Unknown</strong> means no source was found. It does not mean the feature is missing.</li>
       <li>The score is a verified minimum. Games with lots of unknowns may score higher once checked.</li>
       <li><strong>Coverage</strong> shows how much of the checklist has evidence. Under 25% is flagged.</li>
-      <li>Each game has one row per platform. A source only counts for the platform it actually names (e.g. a PS5 review only scores the PS5 row); a source that doesn't name a platform counts for every version of that game. This means one version can score much higher than another simply because it's the one that's been reviewed.</li>
+      <li>Each game has one row per platform (PS4, PS5, PC, etc.). A source only counts for the platform it actually names; a source that doesn't specify counts for every version. This means one version can score much higher simply because it's the one that's been reviewed.</li>
       <li>Sources were checked on 29 September 2026. Older sources are dated so you can judge them.</li>
+    </ul>
+
+    <p><strong>Game Accessibility Ratings (GAAR)</strong></p>
+    <ul>
+      <li><strong>AAA (Exemplary)</strong> — Score 80+, Coverage 90%+. Gold-standard accessibility; industry benchmark. Examples: The Last of Us Part II (96/100, 100%).</li>
+      <li><strong>AA (Highly Accessible)</strong> — Score 60–79, Coverage 70–89%. Strong accessibility across multiple dimensions; recommended tier. Example: God of War Ragnarök (72–74/100, 87–89%).</li>
+      <li><strong>A (Accessible Basics)</strong> — Score 40–59, Coverage 40–69%. Foundation-level accessibility; playable with barriers. Most gaps are documented.</li>
     </ul>
   </div>
 
@@ -754,7 +770,7 @@ const notes = {
   "Apex Legends": "EA has announced Apex Legends stops being playable on the original Nintendo Switch from August 2026 (Season 30); the Switch score reflects the game as it existed before then."
 };
 
-// Scoring
+// Scoring & GAAR ratings
 function inCat(id, cat) { return cat === "all" || id.split(".")[0] === cat; }
 function tally(row, cat) {
   const t = { Y: 0, P: 0, N: 0, U: 0, applicable: 0 };
@@ -768,6 +784,12 @@ function tally(row, cat) {
   t.score = t.applicable ? Math.round(((t.Y + t.P * 0.5) / t.applicable) * 100) : 0;
   t.coverage = t.applicable ? Math.round(((t.Y + t.P + t.N) / t.applicable) * 100) : 0;
   return t;
+}
+function gaarRating(score, coverage) {
+  if (score >= 80 && coverage >= 90) return { tier: "AAA", label: "Exemplary", cls: "gaar-aaa" };
+  if (score >= 60 && coverage >= 70) return { tier: "AA", label: "Highly Accessible", cls: "gaar-aa" };
+  if (score >= 40 && coverage >= 40) return { tier: "A", label: "Accessible Basics", cls: "gaar-a" };
+  return { tier: "—", label: "Insufficient data", cls: "" };
 }
 
 // Filters
@@ -819,11 +841,12 @@ function render() {
   ranked.forEach(({ row, t }, i) => {
     const pct = n => (n / t.applicable * 100) + "%";
     const low = t.coverage < 25;
+    const gaar = gaarRating(t.score, t.coverage);
     const li = document.createElement("li");
     li.innerHTML = `
       <a class="row-link" href="#${rowId(row)}">
       <span class="rank">${i + 1}</span>
-      <span class="name">${row.name}<span class="platform-tag">${row.platform}</span>${low ? `<br><span class="flag">Not enough data</span>` : ""}</span>
+      <span class="name">${row.name}<span class="platform-tag">${row.platform}</span>${gaar.cls ? `<span class="gaar ${gaar.cls}">${gaar.tier}</span>` : ""} ${low ? `<br><span class="flag">Not enough data</span>` : ""}</span>
       <span class="track" aria-hidden="true">
         <span class="seg-met" style="width:${pct(t.Y)}"></span>
         <span class="seg-part" style="width:${pct(t.P)}"></span>
@@ -832,7 +855,7 @@ function render() {
       </span>
       <span class="score">${t.score}<span class="sr"> out of 100</span></span>
       <span class="cov">${t.coverage}% known</span>
-      <span class="sr">${t.Y} met, ${t.P} partial, ${t.N} missing, ${t.U} unknown, out of ${t.applicable} guidelines. ${row.platform} version. View evidence.</span>
+      <span class="sr">${t.Y} met, ${t.P} partial, ${t.N} missing, ${t.U} unknown, out of ${t.applicable} guidelines. ${row.platform} version. Rating: ${gaar.tier} (${gaar.label}). View evidence.</span>
       </a>`;
     chart.appendChild(li);
   });
@@ -846,6 +869,7 @@ function buildEvidence() {
   const wrap = document.getElementById("evidence");
   [...rows].sort((a, b) => tally(b, "all").score - tally(a, "all").score).forEach(row => {
     const t = tally(row, "all");
+    const gaar = gaarRating(t.score, t.coverage);
     const known = criteria.filter(([id]) => row.e[id]);
     const unknown = criteria.filter(([id]) => !row.e[id]).map(([id]) => id);
     const idSlug = slug(row.name) + "-" + slug(row.platform);
@@ -853,7 +877,7 @@ function buildEvidence() {
     d.className = "game";
     d.id = rowId(row);
     d.innerHTML = `
-      <summary>${row.name} <span class="platform-tag">${row.platform}</span> <span>score ${t.score}, ${t.coverage}% known</span></summary>
+      <summary>${row.name} <span class="platform-tag">${row.platform}</span> ${gaar.cls ? `<span class="gaar ${gaar.cls}">${gaar.tier}</span>` : ""} <span>score ${t.score}, ${t.coverage}% known</span></summary>
       ${notes[row.name] ? `<p>${notes[row.name]}</p>` : ""}
       <div class="table-wrap"><table>
         <caption class="sr">Accessibility guidelines for ${row.name} (${row.platform})</caption>
