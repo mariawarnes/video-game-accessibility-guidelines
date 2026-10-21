@@ -328,7 +328,7 @@ const games = [
     {id:"9.3", s:"N", t:"No dedicated accessibility support channels documented", src:3}
   ]},
 { name: "Fortnite",
-  platforms: ["PC", "PS4", "PS5", "Xbox One", "Switch", "Mobile"],
+  platforms: ["PC", "PS4", "PS5", "Xbox One", "Switch"],
   sources: [
     ["Can I Play That?: Fortnite accessibility review & menu deep dive (2022)", "https://caniplaythat.com/2022/04/26/fortnite-accessibility-review-can-i-play-that/"],
     ["Family Gaming Database: Fortnite accessibility (2026)", "https://www.familygamingdatabase.com/en-us/accessibility/Fortnite"],
@@ -389,7 +389,7 @@ const games = [
     {id:"9.3", s:"Y", t:"Epic Games Help Center with searchable FAQs; support tickets; community manager engagement; extensive YouTube guides; Reddit communities; Can I Play That & Family Gaming Database reviews", src:0}
   ]},
 { name: "Minecraft (Bedrock)",
-  platforms: ["PC", "PS4", "PS5", "Xbox One", "Switch", "Mobile"],
+  platforms: ["PC", "PS4", "PS5", "Xbox One", "Switch"],
   sources: [
     ["Minecraft.net: accessibility", "https://www.minecraft.net/en-us/accessibility"],
     ["Can I Play That?: Bedrock gets captions (Jul 2026)", "https://caniplaythat.com/?p=17995"],
@@ -406,7 +406,7 @@ const games = [
     {id:"2.8", s:"Y", t:"Adjustable audio channels", src:0}
   ]},
 { name: "Roblox (platform only)",
-  platforms: ["PC", "Xbox", "Mobile"],
+  platforms: ["PC", "Xbox"],
   sources: [
     ["Can I Play That?: Roblox global text size (Aug 2025)", "https://caniplaythat.com/2025/08/27/roblox-introduces-global-text-size-accessibility-setting/"],
     ["Roblox Creator Hub: accessibility guidelines (Jun 2026)", "https://create.roblox.com/docs/en-us/production/publishing/accessibility"],
@@ -666,7 +666,7 @@ const games = [
     {id:"7.3", s:"Y", t:"Mutators: slow motion, time warp, slower ball, bigger ball", src:0}
   ]},
 { name: "Genshin Impact",
-  platforms: ["PC", "PS4", "PS5", "Mobile"],
+  platforms: ["PC", "PS4", "PS5"],
   sources: [
     ["Family Gaming Database: Genshin Impact (last updated c. 2022)", "https://www.familygamingdatabase.com/accessibility/Genshin+Impact"],
     ["Can I Play That?: Genshin Impact accessibility menu deep dive (May 2021)", "https://caniplaythat.com/2021/05/06/genshin-impact-accessibility-menu-deep-dive/"]
@@ -678,19 +678,17 @@ const games = [
     {id:"3.1", s:"Y", t:"Extensive keyboard/mouse rebinding, including ESC key (2021)", src:1, on:"PC"},
     {id:"3.1", s:"P", t:"Gameplay rebinding available, but menu navigation is locked (2021)", src:1, on:"PlayStation"},
     {id:"3.5", s:"P", t:"Y-axis auto-reset toggle and adjustable camera sensitivity, on all input types (2021)", src:1},
-    {id:"3.6", s:"P", t:"Gyro aiming on mobile", src:0, on:"Mobile"},
     {id:"6.2", s:"P", t:"On-screen control reminders", src:0}
   ]},
 { name: "PUBG: Battlegrounds",
-  platforms: ["PC", "PlayStation", "Xbox", "Mobile"],
+  platforms: ["PC", "PlayStation", "Xbox"],
   sources: [
     ["OsloMet master's thesis on deaf players in PUBG (2020)", "https://oda.oslomet.no/handle/10642/9018"],
     ["Family Gaming Database: PUBG", "https://www.familygamingdatabase.com/accessibility/PlayerUnknowns+Battlegrounds"],
     ["PUBG Mobile Help Center: Color Weakness Mode", "https://pubgmobile.helpshift.com/hc/en/3-pubg-mobile/faq/272-how-do-i-play-in-color-weakness-mode/?l=en"]
   ],
   e: [
-    {id:"1.3", s:"Y", t:"Colour blind friendly", src:1},
-    {id:"1.3", s:"Y", t:"Colour Weakness Mode: protanopia, deuteranopia and tritanopia via Settings > Graphics", src:2, on:"Mobile"},
+    {id:"1.3", s:"Y", t:"Colour blind friendly; protanopia, deuteranopia, tritanopia via Settings > Graphics", src:1},
     {id:"2.6", s:"N", t:"No visual feedback for sounds (as of 2020)", src:0},
     {id:"6.2", s:"Y", t:"Tutorials available", src:1},
     {id:"7.1", s:"P", t:"Practice/training area available", src:1},
@@ -906,7 +904,7 @@ function gaarRating(score, coverage) {
 }
 
 // Filters
-const PLATFORMS = ["PC", "PS4", "PS5", "Xbox One", "Xbox Series X|S", "Switch", "Mobile", "Mac"];
+const PLATFORMS = ["PC", "PS4", "PS5", "Xbox One", "Xbox Series X|S", "Switch", "Mac"];
 let currentCat = "all";
 const selectedPlatforms = new Set();
 
