@@ -848,10 +848,41 @@ function render() {
     .filter(r => r.t.applicable > 0)
     .sort((a, b) => b.t.score - a.t.score || b.t.coverage - a.t.coverage || a.row.name.localeCompare(b.row.name));
 
+  // Combine platforms with identical scores
+  const groupedByName = {};
+  ranked.forEach(item => {
+    const key = item.row.name;
+    if (!groupedByName[key]) groupedByName[key] = [];
+    groupedByName[key].push(item);
+  });
+
+  const combined = [];
+  Object.values(groupedByName).forEach(group => {
+    if (group.length === 1) {
+      combined.push(group[0]);
+    } else {
+      // Check if all have identical scores/coverage
+      const first = group[0].t;
+      const allIdentical = group.every(g => g.t.score === first.score && g.t.coverage === first.coverage && g.t.Y === first.Y && g.t.P === first.P && g.t.N === first.N && g.t.U === first.U);
+
+      if (allIdentical) {
+        // Combine into one with multiple platform tags
+        const combined_row = {
+          row: { ...group[0].row, platform: group.map(g => g.row.platform).join(", ") },
+          t: first
+        };
+        combined.push(combined_row);
+      } else {
+        // Keep separate if scores differ
+        combined.push(...group);
+      }
+    }
+  });
+
   const chart = document.getElementById("chart");
   chart.innerHTML = "";
 
-  if (ranked.length === 0) {
+  if (combined.length === 0) {
     const li = document.createElement("li");
     li.style.gridTemplateColumns = "1fr";
     li.textContent = "No games match this filter combination.";
@@ -861,15 +892,18 @@ function render() {
     return;
   }
 
-  ranked.forEach(({ row, t }, i) => {
+  combined.forEach(({ row, t }, i) => {
     const pct = n => (n / t.applicable * 100) + "%";
     const low = t.coverage < 25;
     const gaar = gaarRating(t.score, t.coverage);
     const li = document.createElement("li");
+    const platformDisplay = row.platform.split(", ").map(p => `<span class="platform-tag">${p}</span>`).join("");
+    // Use first platform for link hash if combined
+    const linkedRow = { ...row, platform: row.platform.split(", ")[0] };
     li.innerHTML = `
-      <a class="row-link" href="#${rowId(row)}">
+      <a class="row-link" href="#${rowId(linkedRow)}">
       <span class="rank">${i + 1}</span>
-      <span class="name">${row.name}<span class="platform-tag">${row.platform}</span>${gaar.cls ? `<span class="gaar ${gaar.cls}">${gaar.tier}</span>` : ""} ${low ? `<br><span class="flag">Not enough data</span>` : ""}</span>
+      <span class="name">${row.name}${platformDisplay}${gaar.cls ? `<span class="gaar ${gaar.cls}">${gaar.tier}</span>` : ""} ${low ? `<br><span class="flag">Not enough data</span>` : ""}</span>
       <span class="track" aria-hidden="true">
         <span class="seg-met" style="width:${pct(t.Y)}"></span>
         <span class="seg-part" style="width:${pct(t.P)}"></span>
@@ -884,7 +918,7 @@ function render() {
   });
 
   document.getElementById("status").textContent =
-    `Ranked by ${catLabel}. Top: ${ranked[0].row.name} (${ranked[0].row.platform}), verified score ${ranked[0].t.score}.`;
+    `Ranked by ${catLabel}. Top: ${combined[0].row.name} (${combined[0].row.platform.split(",")[0].trim()}), verified score ${combined[0].t.score}.`;
 }
 
 // Evidence
