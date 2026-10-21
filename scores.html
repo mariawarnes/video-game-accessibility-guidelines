@@ -98,7 +98,7 @@
   th, td { border: 1px solid var(--line); padding: .35rem .5rem; text-align: left; vertical-align: top; }
   thead th { background: var(--panel); }
   .st { font-weight: 700; white-space: nowrap; }
-  .st-Y { color: var(--met); } .st-P { color: var(--part); } .st-N { color: var(--miss); } .st-NA { color: var(--muted); }
+  .st-Y { color: var(--met); } .st-P { color: var(--part); } .st-N { color: var(--miss); } .st-NA { color: var(--muted); } .st-U { color: var(--muted); font-style: italic; }
   .unknown-list { color: var(--muted); font-size: .95rem; }
   ol.sources { font-size: .95rem; padding-left: 1.5rem; }
   ol.sources li { margin: .2rem 0; overflow-wrap: anywhere; }
@@ -707,8 +707,11 @@ const games = [
     {id:"8.1", s:"NA", t:"Single-player (voice chat not applicable)", src:0},
     {id:"8.2", s:"NA", t:"Single-player (player safety features not applicable)", src:0},
     {id:"8.3", s:"N", t:"Game contains unavoidable phobia triggers (body horror, violence, animals, heights, claustrophobia) with no content warnings, break reminders, or toggles to disable disturbing enemies/scenes", src:0},
+    {id:"3.10", s:"NA", t:"No vehicle driving mechanics (guideline applies to racing games only)", src:0},
+    {id:"6.4", s:"Y", t:"Unlimited pause: can pause during gameplay at any time; no unextendable time limits on progression", src:0},
     {id:"9.1", s:"Y", t:"Accessibility presets surfaced in settings from first boot", src:0},
-    {id:"9.2", s:"Y", t:"Official, detailed accessibility page", src:0}
+    {id:"9.2", s:"Y", t:"Official, detailed accessibility page", src:0},
+    {id:"9.3", s:"Y", t:"Accessible support: official PlayStation accessibility documentation and AbleGamers award for 'Second Channel' (multiple information access methods)", src:1}
   ]}
 ];
 
@@ -836,16 +839,17 @@ function buildEvidence() {
     d.innerHTML = `
       <summary>${row.name} <span class="platform-tag">${row.platform}</span> <span>score ${t.score}, ${t.coverage}% known</span></summary>
       ${notes[row.name] ? `<p>${notes[row.name]}</p>` : ""}
-      ${known.length ? `
       <div class="table-wrap"><table>
-        <caption class="sr">Evidence for ${row.name} (${row.platform})</caption>
+        <caption class="sr">Accessibility guidelines for ${row.name} (${row.platform})</caption>
         <thead><tr><th scope="col">Guideline</th><th scope="col">Status</th><th scope="col">Evidence</th><th scope="col">Source</th></tr></thead>
         <tbody>${known.map(([id, name]) => {
           const rec = row.e[id];
           return `<tr><th scope="row"><a href="index.html#sc-${id.replace(".", "-")}">${id} ${name}</a></th><td class="st st-${rec.s}">${STATUS[rec.s]}</td><td>${rec.t}</td><td><a href="#src-${idSlug}-${rec.src}">[${rec.src + 1}]</a></td></tr>`;
-        }).join("")}</tbody>
-      </table></div>` : `<p>No sourced evidence found for any guideline on this platform.</p>`}
-      <p class="unknown-list"><strong>Unknown (${unknown.length}):</strong> ${unknown.map(id => `<a href="index.html#sc-${id.replace(".", "-")}">${id}</a>`).join(", ")}</p>
+        }).join("")}${unknown.length ? unknown.map(id => {
+          const [, name] = criteria.find(([cid]) => cid === id) || [id, id];
+          return `<tr><th scope="row"><a href="index.html#sc-${id.replace(".", "-")}">${id} ${name}</a></th><td class="st st-U">Unknown</td><td>No evidence documented</td><td>—</td></tr>`;
+        }).join("") : ""}</tbody>
+      </table></div>
       ${row.sources.length ? `<p><strong>Sources</strong></p><ol class="sources">${
         row.sources.map(([label, url], i) => `<li id="src-${idSlug}-${i}"><a href="${url}">${label}</a></li>`).join("")
       }</ol>` : ""}`;
