@@ -938,41 +938,35 @@ function render() {
     .filter(r => r.t.applicable > 0)
     .sort((a, b) => b.t.score - a.t.score || b.t.coverage - a.t.coverage || a.row.name.localeCompare(b.row.name));
 
-  // Combine platforms with identical scores, preserving sort order
+  // Combine platforms with identical scores, maintaining sort order
   const combined = [];
-  const processed = new Set();
+  const processedScores = new Set();
 
   ranked.forEach(item => {
-    const gameKey = item.row.name;
-    if (processed.has(gameKey)) return;
+    const scoreKey = `${item.row.name}|${item.t.score}|${item.t.coverage}|${item.t.Y}|${item.t.P}|${item.t.N}|${item.t.U}`;
+    if (processedScores.has(scoreKey)) return;
+    processedScores.add(scoreKey);
 
-    // Find all items for this game
-    const gameItems = ranked.filter(r => r.row.name === gameKey);
-    processed.add(gameKey);
+    // Find all items for this game with identical score/coverage/breakdown
+    const matchingItems = ranked.filter(r =>
+      r.row.name === item.row.name &&
+      r.t.score === item.t.score &&
+      r.t.coverage === item.t.coverage &&
+      r.t.Y === item.t.Y &&
+      r.t.P === item.t.P &&
+      r.t.N === item.t.N &&
+      r.t.U === item.t.U
+    );
 
-    if (gameItems.length === 1) {
-      combined.push(gameItems[0]);
+    if (matchingItems.length === 1) {
+      combined.push(item);
     } else {
-      // Group by matching score/coverage/breakdown, preserving first occurrence
-      const scoreMap = new Map();
-      gameItems.forEach(item => {
-        const key = `${item.t.score}|${item.t.coverage}|${item.t.Y}|${item.t.P}|${item.t.N}|${item.t.U}`;
-        if (!scoreMap.has(key)) scoreMap.set(key, []);
-        scoreMap.get(key).push(item);
-      });
-
-      // Add combined rows in order of first occurrence
-      scoreMap.forEach(subgroup => {
-        if (subgroup.length === 1) {
-          combined.push(subgroup[0]);
-        } else {
-          const combined_row = {
-            row: { ...subgroup[0].row, platform: subgroup.map(g => g.row.platform).join(", ") },
-            t: subgroup[0].t
-          };
-          combined.push(combined_row);
-        }
-      });
+      // Multiple platforms with identical scores: combine them
+      const combined_row = {
+        row: { ...item.row, platform: matchingItems.map(g => g.row.platform).join(", ") },
+        t: item.t
+      };
+      combined.push(combined_row);
     }
   });
 
